@@ -17,10 +17,6 @@ on:
       artifact-name:
         type: string
 
-    secrets:
-      GIT_TOKEN:
-        description: 'Git token'
-
  
 jobs:
 
@@ -34,10 +30,10 @@ jobs:
       matrix:
         include:
           - name: "staging"
-            bucket_name: "staging-terraform-state"
+            bucket_name: "${{ vars.TFSTATE_S3BUCKET_PREFIX }}-staging-terraform-state"
             role-to-assume: "${{ vars.AWS_ROLE_TO_ASSUME_STAGING }}"
           - name: "production"
-            bucket_name: "production-terraform-state"
+            bucket_name: "${{ vars.TFSTATE_S3BUCKET_PREFIX }}-production-terraform-state"
             role-to-assume: "${{ vars.AWS_ROLE_TO_ASSUME_PRODUCTION }}"
 
     name: "Reconcile ${{ matrix.name }}"
@@ -60,9 +56,7 @@ jobs:
           
       - name: Terraform Init
         working-directory: "${{ inputs.working-directory }}"
-        run: |
-             git config --global url."https://deployments-gk:${{ secrets.GIT_TOKEN }}@github.com/".insteadOf "https://github.com/" 
-             terraform init -backend-config="region=us-east-1" -backend-config="key=${{ inputs.project }}/terraform.tfstate" -backend-config="bucket=${{ matrix.bucket_name }}" -backend-config="dynamodb_table=${{ matrix.bucket_name }}-lock"
+        run: terraform init -backend-config="region=us-east-1" -backend-config="key=${{ inputs.project }}/terraform.tfstate" -backend-config="bucket=${{ matrix.bucket_name }}" -backend-config="dynamodb_table=${{ matrix.bucket_name }}-lock"
 
       - name: Download artifact
         if: "${{ inputs.artifact-name != '' }}"
@@ -90,10 +84,10 @@ jobs:
       matrix:
         include:
           - name: "staging"
-            bucket_name: "staging-terraform-state"
+            bucket_name: "${{ vars.TFSTATE_S3BUCKET_PREFIX }}-staging-terraform-state"
             role-to-assume: "${{ vars.AWS_ROLE_TO_ASSUME_STAGING }}"
           - name: "production"
-            bucket_name: "production-terraform-state"
+            bucket_name: "${{ vars.TFSTATE_S3BUCKET_PREFIX }}-production-terraform-state"
             role-to-assume: "${{ vars.AWS_ROLE_TO_ASSUME_PRODUCTION }}"
 
     name: "Plan ${{ matrix.name }}"
@@ -116,9 +110,7 @@ jobs:
           
       - name: Terraform Init
         working-directory: "${{ inputs.working-directory }}"
-        run: |
-             git config --global url."https://deployments-gk:${{ secrets.GIT_TOKEN }}@github.com/".insteadOf "https://github.com/" 
-             terraform init -backend-config="region=us-east-1" -backend-config="key=${{ inputs.project }}/terraform.tfstate" -backend-config="bucket=${{ matrix.bucket_name }}" -backend-config="dynamodb_table=${{ matrix.bucket_name }}-lock"
+        run: terraform init -backend-config="region=us-east-1" -backend-config="key=${{ inputs.project }}/terraform.tfstate" -backend-config="bucket=${{ matrix.bucket_name }}" -backend-config="dynamodb_table=${{ matrix.bucket_name }}-lock"
 
       - name: Download artifact
         if: "${{ inputs.artifact-name != '' }}"
@@ -151,15 +143,15 @@ jobs:
 #--------------------------------------------------------------------------------------------------------------
   deploy:
     needs: plan
-    if: github.ref == 'refs/heads/master'
+    if: github.ref == 'refs/heads/main'
     strategy:
       matrix: 
         include:
             - name: "staging"
-              bucket_name: "staging-terraform-state"
+              bucket_name: "${{ vars.TFSTATE_S3BUCKET_PREFIX }}-staging-terraform-state"
               role-to-assume: "${{ vars.AWS_ROLE_TO_ASSUME_STAGING }}"
             - name: "production"
-              bucket_name: "production-terraform-state"
+              bucket_name: "${{ vars.TFSTATE_S3BUCKET_PREFIX }}-production-terraform-state"
               role-to-assume: "${{ vars.AWS_ROLE_TO_ASSUME_PRODUCTION }}"
         
     name: "Apply ${{ matrix.name }}"
@@ -182,9 +174,7 @@ jobs:
 
       - name: Terraform Init
         working-directory: "${{ inputs.working-directory }}"
-        run: |
-             git config --global url."https://deployments-gk:${{ secrets.GIT_TOKEN }}@github.com/".insteadOf "https://github.com/"
-             terraform init -backend-config="region=us-east-1" -backend-config="key=${{ inputs.project }}/terraform.tfstate" -backend-config="bucket=${{ matrix.bucket_name }}" -backend-config="dynamodb_table=${{ matrix.bucket_name }}-lock"
+        run: terraform init -backend-config="region=us-east-1" -backend-config="key=${{ inputs.project }}/terraform.tfstate" -backend-config="bucket=${{ matrix.bucket_name }}" -backend-config="dynamodb_table=${{ matrix.bucket_name }}-lock"
 
       - name: Download artifact
         if: "${{ inputs.artifact-name != '' }}"
