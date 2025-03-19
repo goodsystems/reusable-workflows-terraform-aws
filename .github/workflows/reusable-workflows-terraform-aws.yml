@@ -1,5 +1,3 @@
-name: Deploy terraform
-
 on:
   workflow_call:
     inputs:
@@ -66,7 +64,7 @@ jobs:
 
       - name: Terraform Plan
         working-directory: "${{ inputs.working-directory }}"
-        run: terraform plan -no-color -var-file="vars_${{ matrix.name }}.tfvars" -detailed-exitcode
+        run: terraform plan -no-color -var="project=${{ inputs.project }}" -var-file="vars_${{ matrix.name }}.tfvars" -detailed-exitcode
 
       - name: Reconcile status
         if: always()
@@ -128,7 +126,7 @@ jobs:
 
       - name: Terraform Plan
         working-directory: "${{ inputs.working-directory }}"
-        run: terraform plan -no-color -var-file="vars_${{ matrix.name }}.tfvars" -out=plan.tfplan
+        run: terraform plan -no-color -var="project=${{ inputs.project }}" -var-file="vars_${{ matrix.name }}.tfvars" -out=plan.tfplan
 
       - name: Publish plan
         uses: actions/upload-artifact@v4
@@ -143,7 +141,7 @@ jobs:
 #--------------------------------------------------------------------------------------------------------------
   deploy:
     needs: plan
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
     strategy:
       matrix: 
         include:
