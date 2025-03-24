@@ -24,6 +24,7 @@ jobs:
   
   reconcile:
     if: github.event_name == 'schedule'
+    continue-on-error: true
     strategy:
       matrix:
         include:
@@ -78,6 +79,7 @@ jobs:
 
   plan:
     if: github.event_name != 'schedule'
+    continue-on-error: true
     strategy:
       matrix:
         include:
