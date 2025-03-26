@@ -80,6 +80,7 @@ jobs:
 
   plan:
     if: github.event_name != 'schedule'
+    continue-on-error: true
     strategy:
       fail-fast: false
       matrix:
