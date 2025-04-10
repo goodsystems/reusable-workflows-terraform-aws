@@ -39,7 +39,7 @@ jobs:
     name: "Reconcile ${{ matrix.name }}"
     runs-on: ubuntu-latest
     container:
-      image: hashicorp/terraform:1.5
+      image: oowy/opentofu:1.6.2-alpine3.19
     environment:
       name: "terraform-plan-${{ matrix.name }}"
 
@@ -56,7 +56,7 @@ jobs:
           
       - name: Terraform Init
         working-directory: "${{ inputs.working-directory }}"
-        run: terraform init -backend-config="region=us-east-1" -backend-config="key=${{ inputs.project }}/terraform.tfstate" -backend-config="bucket=${{ matrix.bucket_name }}" -backend-config="dynamodb_table=${{ matrix.bucket_name }}-lock"
+        run: tofu init -backend-config="region=us-east-1" -backend-config="key=${{ inputs.project }}/terraform.tfstate" -backend-config="bucket=${{ matrix.bucket_name }}" -backend-config="dynamodb_table=${{ matrix.bucket_name }}-lock"
 
       - name: Download artifact
         if: "${{ inputs.artifact-name != '' }}"
@@ -66,7 +66,7 @@ jobs:
 
       - name: Terraform Plan
         working-directory: "${{ inputs.working-directory }}"
-        run: terraform plan -no-color -var="project=${{ inputs.project }}" -var-file="vars_${{ matrix.name }}.tfvars" -detailed-exitcode
+        run: tofu plan -no-color -var="project=${{ inputs.project }}" -var-file="vars_${{ matrix.name }}.tfvars" -detailed-exitcode
 
       - name: Reconcile status
         if: always()
@@ -95,7 +95,7 @@ jobs:
     name: "Plan ${{ matrix.name }}"
     runs-on: ubuntu-latest
     container:
-      image: hashicorp/terraform:1.5
+      image: oowy/opentofu:1.6.2-alpine3.19
     environment:
       name: "terraform-plan-${{ matrix.name }}"
 
@@ -112,7 +112,7 @@ jobs:
           
       - name: Terraform Init
         working-directory: "${{ inputs.working-directory }}"
-        run: terraform init -backend-config="region=us-east-1" -backend-config="key=${{ inputs.project }}/terraform.tfstate" -backend-config="bucket=${{ matrix.bucket_name }}" -backend-config="dynamodb_table=${{ matrix.bucket_name }}-lock"
+        run: tofu init -backend-config="region=us-east-1" -backend-config="key=${{ inputs.project }}/terraform.tfstate" -backend-config="bucket=${{ matrix.bucket_name }}" -backend-config="dynamodb_table=${{ matrix.bucket_name }}-lock"
 
       - name: Download artifact
         if: "${{ inputs.artifact-name != '' }}"
@@ -122,20 +122,20 @@ jobs:
 
       - name: Terraform Format Check
         working-directory: "${{ inputs.working-directory }}"
-        run: terraform fmt -check
+        run: tofu fmt -check
 
       - name: Terraform Validate
         working-directory: "${{ inputs.working-directory }}"
-        run: terraform validate
+        run: tofu validate
 
       - name: Terraform Plan
         working-directory: "${{ inputs.working-directory }}"
-        run: terraform plan -no-color -var="project=${{ inputs.project }}" -var-file="vars_${{ matrix.name }}.tfvars" -out=plan.tfplan
+        run: tofu plan -no-color -var="project=${{ inputs.project }}" -var-file="vars_${{ matrix.name }}.tfvars" -out=plan.tfplan
 
       - name: Publish plan
         uses: actions/upload-artifact@v4
         with:
-          name: "terraform-plan-${{ inputs.project }}-${{ matrix.name }}"
+          name: "Terraform-plan-${{ inputs.project }}-${{ matrix.name }}"
           path: "${{ inputs.working-directory }}plan.tfplan"
           retention-days: 7
 
@@ -159,7 +159,7 @@ jobs:
     name: "Apply ${{ matrix.name }}"
     runs-on: ubuntu-latest
     container:
-      image: hashicorp/terraform:1.5
+      image: oowy/opentofu:1.6.2-alpine3.19
     environment: 
       name: "terraform-apply-${{ matrix.name }}"
 
@@ -176,7 +176,7 @@ jobs:
 
       - name: Terraform Init
         working-directory: "${{ inputs.working-directory }}"
-        run: terraform init -backend-config="region=us-east-1" -backend-config="key=${{ inputs.project }}/terraform.tfstate" -backend-config="bucket=${{ matrix.bucket_name }}" -backend-config="dynamodb_table=${{ matrix.bucket_name }}-lock"
+        run: tofu init -backend-config="region=us-east-1" -backend-config="key=${{ inputs.project }}/terraform.tfstate" -backend-config="bucket=${{ matrix.bucket_name }}" -backend-config="dynamodb_table=${{ matrix.bucket_name }}-lock"
 
       - name: Download artifact
         if: "${{ inputs.artifact-name != '' }}"
@@ -192,5 +192,5 @@ jobs:
 
       - name: Terraform Apply
         working-directory: "${{ inputs.working-directory }}"
-        run: terraform apply -input=false -no-color plan.tfplan
+        run: tofu apply -input=false -no-color plan.tfplan
 
