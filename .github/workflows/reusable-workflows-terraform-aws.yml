@@ -135,7 +135,7 @@ jobs:
       - name: Publish plan
         uses: actions/upload-artifact@v4
         with:
-          name: "Terraform-plan-${{ inputs.project }}-${{ matrix.name }}"
+          name: "terraform-plan-${{ inputs.project }}-${{ matrix.name }}"
           path: "${{ inputs.working-directory }}plan.tfplan"
           retention-days: 7
 
