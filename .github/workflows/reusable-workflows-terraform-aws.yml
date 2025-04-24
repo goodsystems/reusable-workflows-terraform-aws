@@ -19,7 +19,7 @@ on:
 jobs:
 
 #--------------------------------------------------------------------------------------------------------------
-# Terraform plan jobs
+# OpenTofu plan jobs
 #--------------------------------------------------------------------------------------------------------------
   
   reconcile:
@@ -54,7 +54,7 @@ jobs:
           role-to-assume: "${{ matrix.role-to-assume }}"
           aws-region: "us-east-1"
           
-      - name: Terraform Init
+      - name: OpenTofu Init
         working-directory: "${{ inputs.working-directory }}"
         run: tofu init -backend-config="region=us-east-1" -backend-config="key=${{ inputs.project }}/terraform.tfstate" -backend-config="bucket=${{ matrix.bucket_name }}" -backend-config="dynamodb_table=${{ matrix.bucket_name }}-lock"
 
@@ -64,7 +64,7 @@ jobs:
         with:
           name: "${{ inputs.artifact-name }}"
 
-      - name: Terraform Plan
+      - name: OpenTofu Plan
         working-directory: "${{ inputs.working-directory }}"
         run: tofu plan -no-color -var="project=${{ inputs.project }}" -var-file="vars_${{ matrix.name }}.tfvars" -detailed-exitcode
 
@@ -109,7 +109,7 @@ jobs:
           role-to-assume: "${{ matrix.role-to-assume }}"
           aws-region: "us-east-1"
           
-      - name: Terraform Init
+      - name: OpenTofu Init
         working-directory: "${{ inputs.working-directory }}"
         run: tofu init -backend-config="region=us-east-1" -backend-config="key=${{ inputs.project }}/terraform.tfstate" -backend-config="bucket=${{ matrix.bucket_name }}" -backend-config="dynamodb_table=${{ matrix.bucket_name }}-lock"
 
@@ -119,15 +119,15 @@ jobs:
         with:
           name: "${{ inputs.artifact-name }}"
 
-      - name: Terraform Format Check
+      - name: OpenTofu Format Check
         working-directory: "${{ inputs.working-directory }}"
         run: tofu fmt -check
 
-      - name: Terraform Validate
+      - name: OpenTofu Validate
         working-directory: "${{ inputs.working-directory }}"
         run: tofu validate
 
-      - name: Terraform Plan
+      - name: OpenTofu Plan
         working-directory: "${{ inputs.working-directory }}"
         run: tofu plan -no-color -var="project=${{ inputs.project }}" -var-file="vars_${{ matrix.name }}.tfvars" -out=plan.tfplan
 
@@ -140,7 +140,7 @@ jobs:
 
 
 #--------------------------------------------------------------------------------------------------------------
-# Terraform deploy jobs
+# OpenTofu deploy jobs
 #--------------------------------------------------------------------------------------------------------------
   deploy:
     needs: plan
@@ -173,7 +173,7 @@ jobs:
           role-to-assume: "${{ matrix.role-to-assume }}"
           aws-region: "us-east-1"
 
-      - name: Terraform Init
+      - name: OpenTofu Init
         working-directory: "${{ inputs.working-directory }}"
         run: tofu init -backend-config="region=us-east-1" -backend-config="key=${{ inputs.project }}/terraform.tfstate" -backend-config="bucket=${{ matrix.bucket_name }}" -backend-config="dynamodb_table=${{ matrix.bucket_name }}-lock"
 
@@ -189,7 +189,7 @@ jobs:
           name: "terraform-plan-${{ inputs.project }}-${{ matrix.name }}"
           path: "${{ inputs.working-directory }}"
 
-      - name: Terraform Apply
+      - name: OpenTofu Apply
         working-directory: "${{ inputs.working-directory }}"
         run: tofu apply -input=false -no-color plan.tfplan
 
